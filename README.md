@@ -28,4 +28,5 @@ Knowledge Distillation tested with tensorflow 2.1.
 ## References
 
 Hinton, Geoffrey, Oriol Vinyals, and Jeff Dean. "Distilling the knowledge in a neural network." arXiv preprint arXiv:1503.02531 (2015).
+
 https://github.com/dsskim/knowledge_distillation_tensorflow2
