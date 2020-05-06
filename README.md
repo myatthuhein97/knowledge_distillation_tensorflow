@@ -20,10 +20,10 @@ Knowledge Distillation tested with tensorflow 2.1.
 - [x] Implement Hinton knowledge Distillation loss
 - [x] Implement training with soft logits from teacher (need a lot of system memory)loaded all on memory
 - [X] Tested on small VGG 4-block network
-- [] Implement efficient data loading and soft logits loading
-- [] Test more loss fucntions
-- [] Test more witht different dataset
-- [] Test more with different model architecture
+- [ ] Implement efficient data loading and soft logits loading
+- [ ] Test more loss fucntions
+- [ ] Test more witht different dataset
+- [ ] Test more with different model architecture
 
 ## References
 
