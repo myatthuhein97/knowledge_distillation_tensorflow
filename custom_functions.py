@@ -26,7 +26,7 @@ def custom_cross_entrophy(y_true, y_soft, y_pred, y_soft_pred, alpha=0.5):
     return alpha * soft_cross_entropy + (1 - alpha) * cross_entropy
 
 
-def kl_difergence_cross_entrophy(y_true, y_soft, y_pred, y_soft_pred,cross_entropy,soft_kl_divergence, alpha=0.5,temp=1):
+def kl_divergence_cross_entrophy(y_true, y_soft, y_pred, y_soft_pred,cross_entropy,soft_kl_divergence, alpha=0.5,temp=1):
 
     cross_entropy = tf.keras.losses.CategoricalCrossentropy()
 
