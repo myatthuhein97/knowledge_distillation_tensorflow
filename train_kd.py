@@ -4,16 +4,16 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model, datasets, models
 
-from custom_functions import custom_cross_entrophy, softmax_with_temp
+from custom_functions import custom_cross_entrophy, softmax_with_temp, kl_divergence_cross_entrophy
 from models import vgg_2blocks
 
 AUTO = tf.data.experimental.AUTOTUNE
 
 TEMP = 3
 BATCH_SIZE = 32
-EPOCHS = 5
-TRAIN_LOG_DIR = Path('kd/train')
-TEST_LOG_DIR = Path('kd/test')
+EPOCHS = 200
+TRAIN_LOG_DIR = Path('kd/KL/train')
+TEST_LOG_DIR = Path('kd/KL/test')
 
 
 def main():
@@ -21,16 +21,16 @@ def main():
     (train_images, train_labels), (test_images,
                                    test_labels) = datasets.cifar10.load_data()
     teacher_soft_logits = np.load("teacher_softlogits.npy")
+    print('loading done')
     # Normalize pixel values to be between 0 and 1
     train_images, test_images = train_images / 255.0, test_images / 255.0
 
     class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                    'dog', 'frog', 'horse', 'ship', 'truck']
 
-    train_labels = tf.keras.utils.to_categorical(
-        train_labels.astype('float32'))
+    train_labels = tf.keras.utils.to_categorical(train_labels.astype('float32'))
     test_labels = tf.keras.utils.to_categorical(test_labels.astype('float32'))
-
+  
     dataset = tf.data.Dataset.from_tensor_slices(
         (train_images, train_labels, teacher_soft_logits))
     dataset = dataset.repeat(EPOCHS).batch(BATCH_SIZE)
@@ -53,7 +53,8 @@ def main():
 
     train_summary_writer = tf.summary.create_file_writer(str(TRAIN_LOG_DIR))
     test_summary_writer = tf.summary.create_file_writer(str(TEST_LOG_DIR))
-
+    cross_entropy = tf.keras.losses.CategoricalCrossentropy()
+    soft_kl_divergence = tf.keras.losses.KLDivergence()
     def train_step(images, labels, teacher_soft_logits):
 
         with tf.GradientTape() as tape:
@@ -64,9 +65,11 @@ def main():
 
             teacher_logits = teacher_soft_logits
             softened_teacher_prob = softmax_with_temp(teacher_logits, TEMP)
-
-            loss_value = custom_cross_entrophy(
-                labels, softened_teacher_prob, unsoft_pred, soft_pred)
+            
+            # loss_value = custom_cross_entrophy(
+            #     labels, softened_teacher_prob, unsoft_pred, soft_pred)
+            
+            loss_value = kl_divergence_cross_entrophy(labels, softened_teacher_prob, unsoft_pred, soft_pred, cross_entropy,soft_kl_divergence,alpha=0.5, temp=TEMP)
 
         grads = tape.gradient(loss_value, student_model.trainable_variables)
         opt.apply_gradients(zip(grads, student_model.trainable_variables))
