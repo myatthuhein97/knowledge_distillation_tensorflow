@@ -106,13 +106,12 @@ def vgg_2blocks():
                      kernel_initializer='he_uniform', padding='same'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D((2, 2)))
-    model.add(Dropout(0.3))
+    model.add(Dropout(0.4))
     model.add(Flatten())
     model.add(Dense(128, activation='relu', kernel_initializer='he_uniform'))
     model.add(BatchNormalization())
     model.add(Dropout(0.4))
     model.add(Dense(10, name='logits'))
-    model.add(Softmax())
     model.summary()
 
     return model

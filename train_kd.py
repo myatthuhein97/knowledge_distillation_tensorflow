@@ -66,10 +66,10 @@ def main():
             teacher_logits = teacher_soft_logits
             softened_teacher_prob = softmax_with_temp(teacher_logits, TEMP)
             
-            # loss_value = custom_cross_entrophy(
-            #     labels, softened_teacher_prob, unsoft_pred, soft_pred)
+            loss_value = custom_cross_entrophy(
+                labels, softened_teacher_prob, unsoft_pred, soft_pred)
             
-            loss_value = kl_divergence_cross_entrophy(labels, softened_teacher_prob, unsoft_pred, soft_pred, cross_entropy,soft_kl_divergence,alpha=0.5, temp=TEMP)
+            # loss_value = kl_divergence_cross_entrophy(labels, softened_teacher_prob, unsoft_pred, soft_pred, cross_entropy,soft_kl_divergence,alpha=0.5, temp=TEMP)
 
         grads = tape.gradient(loss_value, student_model.trainable_variables)
         opt.apply_gradients(zip(grads, student_model.trainable_variables))

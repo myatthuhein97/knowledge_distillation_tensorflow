@@ -4,14 +4,25 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 from tensorflow.keras import datasets
 
-from models import vgg_3blocks
+from models import vgg_3blocks, vgg_2blocks
 
-EPOCH = 5
+EPOCH = 100
 BATCH_SIZE = 256
 VAL_FREQUENCY = 1
-TENSORBOARD_LOG = Path("logs/cifar10_vgg3")
-SAVE_MODEL_PATH = Path("checkpoints/cifar10_vgg3")
+TENSORBOARD_LOG = Path("logs/cifar10_vgg2")
+SAVE_MODEL_PATH = Path("checkpoints/cifar10_vgg2")
 
+def lr_schedule(epoch):
+    lr = 1e-3
+    if epoch >= 85:
+        lr *= 1e-1
+    elif epoch >= 75:
+        lr *= 1e-1
+    elif epoch >= 55:
+        lr *= 1e-1
+    elif epoch >= 30:
+        lr *= 1e-1
+    return lr
 
 def main():
     (train_images, train_labels), (test_images,
@@ -23,18 +34,19 @@ def main():
                    'dog', 'frog', 'horse', 'ship', 'truck']
 
     # You can define your own model in models.py
-    model = vgg_3blocks()
+    model = vgg_2blocks()
 
     # You can define what you want to logs in this objects
     tensorboard_callback = tf.keras.callbacks.TensorBoard(
         log_dir=TENSORBOARD_LOG)
+    lr_scheduler = keras.callbacks.LearningRateScheduler(lr_schedule)
 
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False,
         name='Adam')
 
     model.compile(optimizer=optimizer,
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
     history = model.fit(train_images, train_labels, epochs=EPOCH, batch_size=BATCH_SIZE,
