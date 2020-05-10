@@ -9,11 +9,14 @@ from models import vgg_2blocks
 
 AUTO = tf.data.experimental.AUTOTUNE
 
-TEMP = 3
-BATCH_SIZE = 32
-EPOCHS = 200
-TRAIN_LOG_DIR = Path('kd/KL/train')
-TEST_LOG_DIR = Path('kd/KL/test')
+TEMP = 5
+BATCH_SIZE = 128
+EPOCHS = 100
+TRAIN_LOG_DIR = Path('logs/KD_DL_3/train')
+TEST_LOG_DIR = Path('logs/KD_DL_3/test')
+SAVE_PATH = Path('checkpoints/KD_DL_3/')
+CHECKPOINT_PATH = Path('checkpoints/KD_DL_2/1')
+LOAD_FROM_CHECKPOINTS = True
 
 
 def main():
@@ -37,12 +40,17 @@ def main():
     dataset = dataset.prefetch(AUTO)
 
     # make student model
-    models = vgg_2blocks()
-    student_model = tf.keras.Model(
-        inputs=models.input, outputs=models.get_layer('logits').output)
+    
+    if LOAD_FROM_CHECKPOINTS:
+        student_model = tf.saved_model.load(str(CHECKPOINT_PATH))
+        print(list(student_model.signatures.keys()))
+    else:
+        student_model = vgg_2blocks()
+    # student_model = tf.keras.Model(
+    #     inputs=models.input, outputs=models.get_layer('logits').output)
 
     opt = tf.keras.optimizers.Adam(
-        learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False,
+        learning_rate=0.0001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False,
         name='Adam')
 
     # Define our metrics
@@ -66,10 +74,10 @@ def main():
             teacher_logits = teacher_soft_logits
             softened_teacher_prob = softmax_with_temp(teacher_logits, TEMP)
             
-            loss_value = custom_cross_entrophy(
-                labels, softened_teacher_prob, unsoft_pred, soft_pred)
+            # loss_value = custom_cross_entrophy(
+            #     labels, softened_teacher_prob, unsoft_pred, soft_pred)
             
-            # loss_value = kl_divergence_cross_entrophy(labels, softened_teacher_prob, unsoft_pred, soft_pred, cross_entropy,soft_kl_divergence,alpha=0.5, temp=TEMP)
+            loss_value = kl_divergence_cross_entrophy(labels, softened_teacher_prob, unsoft_pred, soft_pred, cross_entropy,soft_kl_divergence,alpha=0.4, temp=TEMP)
 
         grads = tape.gradient(loss_value, student_model.trainable_variables)
         opt.apply_gradients(zip(grads, student_model.trainable_variables))
@@ -88,7 +96,7 @@ def main():
 
         for x, y, soft_logits in dataset:
 
-            loss = train_step(x, y, soft_logits)
+            _ = train_step(x, y, soft_logits)
             step += 1
             # End of one epoch
             if step % int(len(train_images) / BATCH_SIZE) == 0:
@@ -114,6 +122,7 @@ def main():
                 train_loss.reset_states()
 
     train()
+    tf.saved_model.save(student_model, str(SAVE_PATH))
 
 
 if __name__ == "__main__":

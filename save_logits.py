@@ -10,7 +10,7 @@ train_images, test_images = train_images / 255.0, test_images / 255.0
 
 print(train_images.shape)
 
-MODEL_PATH = Path("checkpoints/cifar10_vgg3")
+MODEL_PATH = Path("checkpoints/cifar10_vgg4")
 
 # You can turn this on if you don't have enough memory
 
@@ -21,8 +21,7 @@ MODEL_PATH = Path("checkpoints/cifar10_vgg3")
 
 teacher_model = models.load_model(str(MODEL_PATH))
 
-# Remove the last softmax layer
-teacher_model.pop()
+
 
 teacher_model.summary()
 
